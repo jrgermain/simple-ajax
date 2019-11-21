@@ -1,4 +1,4 @@
-// Simple Ajax v0.1 by Joey Germain (jrgermain)
+// Simple Ajax v0.1.1 by Joey Germain (jrgermain)
 "use strict";
 
 const Ajax = {
@@ -20,8 +20,8 @@ const Ajax = {
             } else if (params.requestHeader) {
                 throw "Ajax: Invalid request header. Must be a single object or array of objects";
             }
-        
-            xhr.send();
+
+            xhr.send(params.requestBody);
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
@@ -49,11 +49,8 @@ const Ajax = {
             }
         })();
 
-        if (typeof response === "object") {
-            // If we are parsing an XMLHttpRequest, get its response
-            return (response instanceof XMLHttpRequest) 
-                   ? Ajax.parseResponse(response.response || response.responseText) 
-                   : response;
+        if (response instanceof XMLHttpRequest) {
+            return Ajax.parseResponse(response.response || response.responseText);
         } else if (isJsonString) {
             return parsedJson;
         } else {
