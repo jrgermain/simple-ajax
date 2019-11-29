@@ -4,7 +4,7 @@
 const Ajax = {
     request: function (params) {
         // Ensure we are given an object with the required parameters
-        if (typeof params !== "object") throw "Ajax: request parameter must be an object";
+        if (params.constructor.name !== "Object") throw "Ajax: request parameter must be a plain object";
         if (!params.method || !params.url) throw "Ajax: missing or empty required parameter(s)";
 
         return new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ const Ajax = {
             }
         })();
 
-        if (response instanceof XMLHttpRequest) {
+        if (response.constructor.name === "XMLHttpRequest") {
             return Ajax.parseResponse(response.response || response.responseText);
         } else if (isJsonString) {
             return parsedJson;
