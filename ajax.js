@@ -24,7 +24,7 @@ const Ajax = {
             xhr.send(params.requestBody);
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
                         resolve(xhr);
                         if (typeof params.onSuccess === "function")
                             params.onSuccess(xhr);
