@@ -1,11 +1,13 @@
-// Simple Ajax v0.1.1 by Joey Germain (jrgermain)
+// Simple Ajax v0.1.2 by Joey Germain (jrgermain)
 "use strict";
 
 const Ajax = {
     request: function (params) {
-        // Ensure we are given an object with the required parameters
-        if (params.constructor.name !== "Object") throw "Ajax: request parameter must be a plain object";
-        if (!params.method || !params.url) throw "Ajax: missing or empty required parameter(s)";
+        // Check for invalid or missing parameters
+        const paramType = (params == null) ? params : params.constructor.name;
+
+        if (paramType !== "Object") throw "Ajax: request parameter must be a plain object, not " + paramType;
+        if (params.method == null || params.url == null) throw "Ajax: missing required parameter(s)";
 
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
