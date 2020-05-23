@@ -40,22 +40,17 @@ const Ajax = {
             };
         });
     },
-    parseResponse: function (response) {
-        let parsedJson;
-        const isJsonString = (function () {
-            if (typeof response !== "string") return false;
-            try {
-                parsedJson = JSON.parse(response);
-                return true;
-            } catch (e) {
-                return false;
-            }
-        })();
+    parseJSONResponse: function (response) {
+        try {
+            var json = JSON.parse(response);
+        } catch (e) {
+            // Response was not a JSON string
+        }
 
-        if (response.constructor.name === "XMLHttpRequest") {
+        if (response != null && response.constructor.name === "XMLHttpRequest") {
             return Ajax.parseResponse(response.response || response.responseText);
-        } else if (isJsonString) {
-            return parsedJson;
+        } else if (json !== undefined) {
+            return json;
         } else {
             return response;
         }
