@@ -40,6 +40,23 @@ const Ajax = {
             };
         });
     },
+    get: function (url, callback) {
+        return Ajax.request({
+            method: "GET",
+            url: url,
+            onSuccess: callback,
+            onError: callback
+        });
+    },
+    post: function (url, data, callback) {
+        return Ajax.request({
+            method: "POST",
+            url: url,
+            requestBody: data,
+            onSuccess: callback,
+            onError: callback
+        });
+    },
     parseJSONResponse: function (response) {
         try {
             var json = JSON.parse(response);
