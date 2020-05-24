@@ -2,6 +2,19 @@
 "use strict";
 
 const Ajax = {
+    /**
+     * Make an asynchronous request
+     * 
+     * @param {Object} params                      An object containing the parameters to the request (at a minimum, a method and a url)
+     * @param {string} params.method               The method of the request (e.g. "GET" or "POST")
+     * @param {string} params.url                  The url of the request
+     * @param {Object[]|Object} requestHeader      An array of objects or a single object with the properties "name" and "value"
+     * @param {*} requestBody                      The body of the request
+     * @callback onSuccess                         Called when the request state changes to completed and the status is a 200-level code
+     * @callback onError                           Called when the request state changes to completed and the status is NOT a 200-level code
+     * 
+     * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
+     */
     request: function ({ method, url, requestHeader, requestBody, onSuccess, onError }) {
         if (method == null || url == null) {
             throw "Ajax: missing required parameter(s)";
@@ -40,6 +53,15 @@ const Ajax = {
             };
         });
     },
+
+    /**
+     * Make an asynchronous http get request. A simplified version of Ajax.request().
+     * 
+     * @param {string} url The url of the request
+     * @callback callback  A function that is run once the request resolves or rejects
+     * 
+     * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
+     */
     get: function (url, callback) {
         return Ajax.request({
             method: "GET",
@@ -48,6 +70,16 @@ const Ajax = {
             onError: callback
         });
     },
+
+    /**
+     * Make an asynchronous http post request. A simplified version of Ajax.request().
+     * 
+     * @param {string} url The url of the request
+     * @param {*} data     The data to send with the request
+     * @callback callback  A function that is run once the request resolves or rejects
+     * 
+     * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
+     */
     post: function (url, data, callback) {
         return Ajax.request({
             method: "POST",
@@ -57,6 +89,14 @@ const Ajax = {
             onError: callback
         });
     },
+
+    /**
+     * Takes a response from the server and parses it into an object if it is or contains JSON
+     * 
+     * @param {*} response The response from the server
+     * 
+     * @returns {*} Either an object parsed from a response, or the raw respone if it could not be parsed
+     */
     parseJSONResponse: function (response) {
         try {
             var json = JSON.parse(response);
