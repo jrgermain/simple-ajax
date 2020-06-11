@@ -145,6 +145,8 @@ const Ajax = {
      * Map an XMLHttpRequest to the name of the class of its status code.
      * 
      * @param {XMLHttpResuest} xhr  An XMLHttpRequest
+     * 
+     * @returns {string} A string containing the name of the class of status code. Undefined if the status is somehow invalid.
      */
     parseStatus: function (xhr) {
         const status = xhr.status
