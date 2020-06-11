@@ -1,4 +1,4 @@
-// Simple Ajax v0.1.4 by Joey Germain (jrgermain)
+// Simple Ajax v0.1.5 by Joey Germain (jrgermain)
 // Licensed under the MIT license
 "use strict";
 
@@ -40,7 +40,7 @@ const Ajax = {
             xhr.send(requestBody);
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
-                    if (xhr.status >= 200 && xhr.status < 300) {
+                    if (Ajax.parseStatus(xhr) === "SUCCESS") {
                         const response = Ajax.parseResponse(xhr, responseType);
                         resolve(response);
                         if (typeof onSuccess === "function") {
@@ -139,6 +139,24 @@ const Ajax = {
             default:
                 console.warn("Ajax: tried to parse response of unsupported type: ", expectedType);
                 return response;
+        }
+    },
+
+    /**
+     * Map an XMLHttpRequest to the name of the class of its status code.
+     * 
+     * @param {XMLHttpResuest} xhr  An XMLHttpRequest
+     */
+    parseStatus: function (xhr) {
+        const status = xhr.status
+        const firstDigit = Math.floor(status / 100);
+
+        switch (firstDigit) {
+            case 1: return "INFORMATIONAL";
+            case 2: return "SUCCESS";
+            case 3: return "REDIRECTION";
+            case 4: return "CLIENT_ERROR";
+            case 5: return "SERVER_ERROR";
         }
     }
 };
