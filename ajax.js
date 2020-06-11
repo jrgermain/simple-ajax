@@ -166,3 +166,8 @@ const ResponseType = {
     HTML: "html",
     XML: "xml"
 }
+
+export {
+    Ajax as default,
+    ResponseType
+}

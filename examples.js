@@ -1,3 +1,5 @@
+import Ajax, { ResponseType } from "./ajax.js"
+
 /* Ajax.request examples */
 
 // Using ES6 async keyword
