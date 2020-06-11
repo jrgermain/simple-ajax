@@ -1,4 +1,4 @@
-// Simple Ajax v0.1.3 by Joey Germain (jrgermain)
+// Simple Ajax v0.1.4 by Joey Germain (jrgermain)
 // Licensed under the MIT license
 "use strict";
 
@@ -6,17 +6,18 @@ const Ajax = {
     /**
      * Make an asynchronous request
      * 
-     * @param {Object} params                      An object containing the parameters to the request (at a minimum, a method and a url)
-     * @param {string} params.method               The method of the request (e.g. "GET" or "POST")
-     * @param {string} params.url                  The url of the request
-     * @param {Object[]|Object} requestHeader      An array of objects or a single object with the properties "name" and "value"
-     * @param {*} requestBody                      The body of the request
-     * @callback onSuccess                         Called when the request state changes to completed and the status is a 200-level code
-     * @callback onError                           Called when the request state changes to completed and the status is NOT a 200-level code
+     * @param {Object} params                         An object containing the parameters to the request (at a minimum, a method and a url)
+     * @param {string} params.method                  The method of the request (e.g. "GET" or "POST")
+     * @param {string} params.url                     The url of the request
+     * @param {Object[]|Object} params.requestHeader  An array of objects or a single object with the properties "name" and "value"
+     * @param {*} params.requestBody                  The body of the request
+     * @param {string} params.responseType            The expected format of the response
+     * @callback params.onSuccess                     Called when the request state changes to completed and the status is a 200-level code
+     * @callback params.onError                       Called when the request state changes to completed and the status is NOT a 200-level code
      * 
      * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
      */
-    request: function ({ method, url, requestHeader, requestBody, onSuccess, onError }) {
+    request: function ({ method, url, requestHeader, requestBody, responseType, onSuccess, onError }) {
         if (method == null || url == null) {
             throw "Ajax: missing required parameter(s)";
         }
@@ -40,14 +41,16 @@ const Ajax = {
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
                     if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(xhr);
+                        const response = Ajax.parseResponse(xhr, responseType);
+                        resolve(response);
                         if (typeof onSuccess === "function") {
-                            onSuccess(xhr);
+                            onSuccess(response);
                         }
                     } else {
-                        reject(xhr);
+                        const response = Ajax.parseResponse(xhr, responseType);
+                        reject(response);
                         if (typeof onError === "function") {
-                            onError(xhr);
+                            onError(response);
                         }
                     }
                 }
@@ -92,25 +95,56 @@ const Ajax = {
     },
 
     /**
-     * Takes a response from the server and parses it into an object if it is or contains JSON
+     * Parse a response from a given expected format
      * 
-     * @param {*} response The response from the server
+     * @param {*} response           The response to be parsed
+     * @param {string} expectedType  One of ['json', 'html', 'xml']
      * 
-     * @returns {*} Either an object parsed from a response, or the raw respone if it could not be parsed
+     * @returns {*} Either an Object/Document/HTNLDocument parsed from a response, or the raw response data if it could not be parsed
      */
-    parseJSONResponse: function (response) {
-        try {
-            var json = JSON.parse(response);
-        } catch (e) {
-            // Response was not a JSON string
+    parseResponse: function (response, expectedType) {
+        // If we were not given an expected type, return the original item
+        if (expectedType == null) {
+            return response;
         }
 
+        // If response is an XMLHttpRequest, call this function on its data
         if (response != null && response.constructor.name === "XMLHttpRequest") {
-            return Ajax.parseResponse(response.response || response.responseText);
-        } else if (json !== undefined) {
-            return json;
-        } else {
+            return Ajax.parseResponse(response.response || response.responseText, expectedType);
+        }
+        // If response is an object (but not an XMLHttpRequest), assume it is already parsed
+        else if (typeof response === "object") {
             return response;
+        }
+
+        switch (expectedType) {
+            case ResponseType.JSON:
+                try {
+                    return JSON.parse(response);
+                } catch (e) {
+                    console.warn("Ajax: tried to parse response as JSON but couldn't");
+                    return response;
+                }
+            case ResponseType.HTML:
+            case ResponseType.XML:
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(response, `text/${expectedType}`);
+                const hasParserError = !!doc.getElementsByTagName("parsererror").length;
+                if (hasParserError) {
+                    console.warn(`Ajax: tried to parse response as ${expectedType.toUpperCase()} but couldn't`);
+                    return response;
+                } else {
+                    return doc;
+                }
+            default:
+                console.warn("Ajax: tried to parse response of unsupported type: ", expectedType);
+                return response;
         }
     }
 };
+
+const ResponseType = {
+    JSON: "json",
+    HTML: "html",
+    XML: "xml"
+}

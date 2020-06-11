@@ -3,13 +3,14 @@
 // Using ES6 async keyword
 (async function () {
     try {
-        const xhr = await Ajax.request({
+        const json = await Ajax.request({
             method: "GET",
             url: "https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4",
+            responseType: ResponseType.JSON
         });
-        console.log("Success", Ajax.parseJSONResponse(xhr));
+        console.log("Success", json);
     } catch (e) {
-        console.log("Failure", Ajax.parseJSONResponse(e)); // e is the same XMLHttpRequest as xhr
+        console.log("Failure", e);
     }
 })();
 
@@ -17,11 +18,12 @@
 Ajax.request({
     method: "GET",
     url: "https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4",
-    onSuccess: function (xhr) {
-        console.log("Success", Ajax.parseJSONResponse(xhr));
+    responseType: ResponseType.JSON,
+    onSuccess: function (json) {
+        console.log("Success", json);
     },
-    onError: function (xhr) {
-        console.log("Failure", Ajax.parseJSONResponse(xhr));
+    onError: function (json) {
+        console.log("Failure", json);
     }
 });
 
@@ -29,8 +31,9 @@ Ajax.request({
 Ajax.request({
     method: "GET",
     url: "https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4",
-}).then((xhr) => {
-    console.log("Success", Ajax.parseJSONResponse(xhr));
-}).catch((xhr) => {
-    console.log("Failure", Ajax.parseJSONResponse(xhr));
+    responseType: ResponseType.JSON
+}).then((json) => {
+    console.log("Success", json);
+}).catch((json) => {
+    console.log("Failure", json);
 });
