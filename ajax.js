@@ -1,6 +1,5 @@
 // Simple Ajax v0.1.5 by Joey Germain (jrgermain)
 // Licensed under the MIT license
-"use strict";
 
 const Ajax = {
     /**
