@@ -8,6 +8,7 @@ const Ajax = {
      * @param {Object} params                         An object containing the parameters to the request (at a minimum, a method and a url)
      * @param {string} params.method                  The method of the request (e.g. "GET" or "POST")
      * @param {string} params.url                     The url of the request
+     * @param {boolean} params.cache                  Whether to allow caching (defaults to true) 
      * @param {Object[]|Object} params.requestHeader  An array of objects or a single object with the properties "name" and "value"
      * @param {*} params.requestBody                  The body of the request
      * @param {string} params.responseType            The expected format of the response
@@ -16,7 +17,7 @@ const Ajax = {
      * 
      * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
      */
-    request: function ({ method, url, requestHeader, requestBody, responseType, onSuccess, onError }) {
+    request: function ({ method, url, cache, requestHeader, requestBody, responseType, onSuccess, onError }) {
         if (method == null || url == null) {
             throw "Ajax: missing required parameter(s)";
         }
@@ -34,6 +35,11 @@ const Ajax = {
                 xhr.setRequestHeader(requestHeader.name, requestHeader.value);
             } else if (requestHeader) {
                 throw "Ajax: Invalid request header. Must be a single object or array of objects";
+            }
+
+            // Disable caching if the user asked us to
+            if (cache === false) {
+                xhr.setRequestHeader("Cache-Control", "no-store");
             }
 
             xhr.send(requestBody);
