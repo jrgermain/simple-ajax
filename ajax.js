@@ -45,14 +45,15 @@ const Ajax = {
             xhr.send(requestBody);
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
+                    // Request status is now "done" so parse the response
+                    const response = Ajax.parseResponse(xhr, responseType);
+
                     if (Ajax.parseStatus(xhr) === "SUCCESS") {
-                        const response = Ajax.parseResponse(xhr, responseType);
                         resolve(response);
                         if (typeof onSuccess === "function") {
                             onSuccess(response);
                         }
                     } else {
-                        const response = Ajax.parseResponse(xhr, responseType);
                         reject(response);
                         if (typeof onError === "function") {
                             onError(response);
