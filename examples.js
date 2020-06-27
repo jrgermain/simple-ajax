@@ -1,18 +1,18 @@
-import Ajax, { ResponseType } from "./ajax.js"
+import Ajax from "./ajax.js"
 
 /* Ajax.request examples */
 
 // Using ES6 async keyword
 (async function () {
     try {
-        const json = await Ajax.request({
+        const response = await Ajax.request({
             method: "GET",
             url: "https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4",
-            responseType: ResponseType.JSON
+            responseType: "json"
         });
-        console.log("Success", json);
-    } catch (e) {
-        console.log("Failure", e);
+        console.log("Success", response);
+    } catch (response) {
+        console.log("Failure", response);
     }
 })();
 
@@ -20,12 +20,12 @@ import Ajax, { ResponseType } from "./ajax.js"
 Ajax.request({
     method: "GET",
     url: "https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4",
-    responseType: ResponseType.JSON,
-    onSuccess: function (json) {
-        console.log("Success", json);
+    responseType: "json",
+    onSuccess: function (response) {
+        console.log("Success", response);
     },
-    onError: function (json) {
-        console.log("Failure", json);
+    onError: function (response) {
+        console.log("Failure", response);
     }
 });
 
@@ -33,33 +33,35 @@ Ajax.request({
 Ajax.request({
     method: "GET",
     url: "https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4",
-    responseType: ResponseType.JSON
-}).then((json) => {
-    console.log("Success", json);
-}).catch((json) => {
-    console.log("Failure", json);
+    responseType: "json"
+}).then((response) => {
+    console.log("Success", response);
+}).catch((response) => {
+    console.log("Failure", response);
 });
 
 /* Ajax.get examples */
 
 // Using ES6 async keyword
 (async function () {
-    const response = await Ajax.get("https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4");
-    const status = Ajax.parseStatus(response);
-    const json = Ajax.parseResponse(response, ResponseType.JSON);
-    console.log(status, json);
+    try {
+        const response = await Ajax.get("https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4", "json");
+        console.log("Success", response);
+    } catch (response) {
+        console.log("Failure", response);
+    }
 })();
 
 // Using callbacks
-Ajax.get("https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4", (response) => {
-    const status = Ajax.parseStatus(response);
-    const json = Ajax.parseResponse(response, ResponseType.JSON);
-    console.log(status, json);
+Ajax.get("https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4", "json", function (response, status) {
+    if (status === Ajax.Status.SUCCESS) {
+        console.log("Success", response);
+    } else {
+        console.log("Failure", response);
+    }
 });
 
 // Using promises
-Ajax.get("https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4").then((response) => {
-    const status = Ajax.parseStatus(response);
-    const json = Ajax.parseResponse(response, ResponseType.JSON);
-    console.log(status, json);
-});
+Ajax.get("https://itunes.apple.com/search?term=hey+jude&country=US&media=music&limit=4", "json")
+    .then((response) => { console.log("Success", response) })
+    .catch((response) => { console.log("Failure", response) });

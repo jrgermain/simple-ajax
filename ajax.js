@@ -1,4 +1,4 @@
-// Simple Ajax v0.2.0 by Joey Germain (jrgermain)
+// Simple Ajax v0.3.0 by Joey Germain (jrgermain)
 // Licensed under the MIT license
 
 const Ajax = {
@@ -42,21 +42,27 @@ const Ajax = {
                 xhr.setRequestHeader("Cache-Control", "no-store");
             }
 
+            // Set the response type. If the given type is invalid, fall back to "", the default for XMLHttpRequests.
+            const _responseType = typeof responseType === "string" && validResponseTypes.includes(responseType.toLowerCase()) ? responseType.toLowerCase() : "";
+            if (responseType && _responseType === "") {
+                console.warn("Ajax: Invalid expected response type:", responseType, "\nResponse will be treated as plain text");
+            }
+            xhr.responseType = _responseType;
+
             xhr.send(requestBody);
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4) {
-                    // Request status is now "done" so parse the response
-                    const response = Ajax.parseResponse(xhr, responseType);
-
-                    if (Ajax.parseStatus(xhr) === "SUCCESS") {
+                    const response = xhr.response || xhr.responseText;
+                    const status = Ajax.parseStatus(xhr);
+                    if (status === Ajax.Status.SUCCESS) {
                         resolve(response);
                         if (typeof onSuccess === "function") {
-                            onSuccess(response);
+                            onSuccess(response, status);
                         }
                     } else {
-                        reject(response);
+                        reject(xhr.response);
                         if (typeof onError === "function") {
-                            onError(response);
+                            onError(response, status);
                         }
                     }
                 }
@@ -67,15 +73,17 @@ const Ajax = {
     /**
      * Make an asynchronous http get request. A simplified version of Ajax.request().
      * 
-     * @param {string} url The url of the request
-     * @callback callback  A function that is run once the request resolves or rejects
+     * @param {string} url          The url of the request
+     * @param {string} responseType The expected format of the response
+     * @callback callback           A function that is run once the request resolves or rejects
      * 
      * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
      */
-    get: function (url, callback) {
+    get: function (url, responseType, callback) {
         return Ajax.request({
             method: "GET",
             url: url,
+            responseType: responseType,
             onSuccess: callback,
             onError: callback
         });
@@ -84,68 +92,22 @@ const Ajax = {
     /**
      * Make an asynchronous http post request. A simplified version of Ajax.request().
      * 
-     * @param {string} url The url of the request
-     * @param {*} data     The data to send with the request
-     * @callback callback  A function that is run once the request resolves or rejects
+     * @param {string} url          The url of the request
+     * @param {string} responseType The expected format of the response
+     * @param {*} data              The data to send with the request
+     * @callback callback           A function that is run once the request resolves or rejects
      * 
      * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
      */
-    post: function (url, data, callback) {
+    post: function (url, responseType, data, callback) {
         return Ajax.request({
             method: "POST",
             url: url,
+            responseType: responseType,
             requestBody: data,
             onSuccess: callback,
             onError: callback
         });
-    },
-
-    /**
-     * Parse a response from a given expected format
-     * 
-     * @param {*} response           The response to be parsed
-     * @param {string} expectedType  One of ['json', 'html', 'xml']
-     * 
-     * @returns {*} Either an Object/Document/HTNLDocument parsed from a response, or the raw response data if it could not be parsed
-     */
-    parseResponse: function (response, expectedType) {
-        // If we were not given an expected type, return the original item
-        if (expectedType == null) {
-            return response;
-        }
-
-        // If response is an XMLHttpRequest, call this function on its data
-        if (response != null && response.constructor.name === "XMLHttpRequest") {
-            return Ajax.parseResponse(response.response || response.responseText, expectedType);
-        }
-        // If response is an object (but not an XMLHttpRequest), assume it is already parsed
-        else if (typeof response === "object") {
-            return response;
-        }
-
-        switch (expectedType) {
-            case ResponseType.JSON:
-                try {
-                    return JSON.parse(response);
-                } catch (e) {
-                    console.warn("Ajax: tried to parse response as JSON but couldn't");
-                    return response;
-                }
-            case ResponseType.HTML:
-            case ResponseType.XML:
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(response, `text/${expectedType}`);
-                const hasParserError = !!doc.getElementsByTagName("parsererror").length;
-                if (hasParserError) {
-                    console.warn(`Ajax: tried to parse response as ${expectedType.toUpperCase()} but couldn't`);
-                    return response;
-                } else {
-                    return doc;
-                }
-            default:
-                console.warn("Ajax: tried to parse response of unsupported type: ", expectedType);
-                return response;
-        }
     },
 
     /**
@@ -160,22 +122,29 @@ const Ajax = {
         const firstDigit = Math.floor(status / 100);
 
         switch (firstDigit) {
-            case 1: return "INFORMATIONAL";
-            case 2: return "SUCCESS";
-            case 3: return "REDIRECTION";
-            case 4: return "CLIENT_ERROR";
-            case 5: return "SERVER_ERROR";
+            case 1: return Ajax.Status.INFORMATIONAL;
+            case 2: return Ajax.Status.SUCCESS;
+            case 3: return Ajax.Status.REDIRECTION;
+            case 4: return Ajax.Status.CLIENT_ERROR
+            case 5: return Ajax.Status.SERVER_ERROR;
         }
+    },
+
+    Status: {
+        INFORMATIONAL: "Informational",
+        SUCCESS: "Success",
+        REDIRECTION: "Redirection",
+        CLIENT_ERROR: "Client Error",
+        SERVER_ERROR: "Server Error"
     }
 };
 
-const ResponseType = {
-    JSON: "json",
-    HTML: "html",
-    XML: "xml"
-}
+const validResponseTypes = [
+    "arraybuffer",
+    "blob",
+    "document",
+    "json",
+    "text"
+]
 
-export {
-    Ajax as default,
-    ResponseType
-}
+export default Ajax
