@@ -1,0 +1,3 @@
+Since this library is made to be run in the browser, the tests also run in a browser.
+
+This mini test framework I wrote runs this library through a set of test cases and displays the results on the page
