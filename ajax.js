@@ -1,4 +1,4 @@
-// Simple Ajax v1.0 by Joey Germain (jrgermain)
+// Simple Ajax v1.1 by Joey Germain (jrgermain)
 // Licensed under the MIT license
 
 /**
@@ -19,8 +19,8 @@
  * @returns {Promise<XMLHttpRequest>} A promise that resolves if the request is successful and rejects if it is not
  */
 function request({ method, url, cache, requestHeaders, requestBody, requestType, responseType, onComplete, onSuccess, onError }) {
-    if (method == null || url ==null) {
-        throw "Ajax: missing required parameter(s)";
+    if (method == null || url == null) {
+        throw new Error("Ajax: missing required parameter(s)");
     }
 
     return new Promise((resolve, reject) => {
@@ -60,15 +60,15 @@ function request({ method, url, cache, requestHeaders, requestBody, requestType,
                 // Then, fire the onSuccess/onError callbacks AND resolve/reject the promise
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // A request succeeded if it has a status code between 200 and 299, inclusive
-                    resolve(xhr.response);
                     if (typeof onSuccess === "function") {
                         onSuccess(xhr.response, xhr.status);
                     }
+                    resolve(xhr.response);
                 } else {
-                    reject(xhr.response);
                     if (typeof onError === "function") {
                         onError(xhr.response, xhr.status);
                     }
+                    reject(xhr.response);
                 }
             }
         };
@@ -77,7 +77,8 @@ function request({ method, url, cache, requestHeaders, requestBody, requestType,
 
 const readRequests = [
     "get",
-    "head"
+    "head",
+    "options"
 ]
 const writeRequests = [
     "post",
@@ -109,7 +110,7 @@ const Ajax = new Proxy({ request }, {
         }
 
         // Generate an ajax function
-        const [_, method, type] = prop.match(readRequest) || prop.match(writeRequest) || [];
+        const [method, type] = (prop.match(readRequest) || prop.match(writeRequest) || []).slice(1);
         const params = { method };
 
         if (readRequests.includes(method)) {
